@@ -21,6 +21,8 @@
               <input type="text" name="url" class="form-control" id="url-box" placeholder="www.jobsite.co.uk" style="max-width: 300px;">
             </div>
             <button type="submit" class="btn btn-default">Submit</button>
+            <p><a href="{{ url_for('cool_form') }}">Check out this cool form!</a></p>
+            <p><a href="{{ url_for('loadtest') }}">Link to /loadtest</a></p>
           </form>
       <br>
       {% for error in errors %}

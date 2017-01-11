@@ -4,7 +4,7 @@ import requests
 import time
 from datetime import datetime
 from flask import jsonify
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 from rq import Queue
@@ -75,25 +75,27 @@ def index():
         print(job.get_id())
         print(url)
 
-
     return render_template('index.html', results=results)
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    results = {}
+@app.route('/loadtest', methods=['GET', 'POST'])
+def loadtest():
     if request.method == "POST":
-        # get url that the person has entered
-        url = request.form['url']
-        if 'http://' not in url[:7]:
-            url = 'http://' + url
-        job = q.enqueue_call(
-            func=ping_and_save_url, args=(url,), result_ttl=5000
-        )
-        print(job.get_id())
-        print(url)
+        print "Success"
 
+    return render_template('loadtest.html')
 
-    return render_template('index.html', results=results)
+@app.route('/cool_form', methods=['GET', 'POST'])
+def cool_form():
+    if request.method == 'POST':
+        # do stuff when the form is submitted
+
+        # redirect to end the POST handling
+        # the redirect can be to the same route or somewhere else
+        print "Success"
+        return redirect(url_for('index'))
+
+    # show the form, it wasn't submitted
+    return render_template('cool_form.html')
 
 @app.route("/results/<job_key>", methods=['GET'])
 def get_results(job_key):
