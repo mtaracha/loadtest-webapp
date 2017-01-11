@@ -1,9 +1,10 @@
 import os
+import subprocess
 import requests
 import time
 from datetime import datetime
 from flask import jsonify
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 from rq import Queue
@@ -20,11 +21,13 @@ q = Queue(connection=conn)
 
 from models import *
 
-def processor_time():
-	print "Blah blah"
+def processor_heavy_operation():
+
+	subprocess.call(["dd", "if=/dev/zero", "of=testfilefast", "bs=1024", "count=100240"])
+	#dd if=/dev/random of=bigfile bs=1024 count=102400
+	#subprocess.call(["dd", "if=/dev/urandom", "of=testfileslow", "bs=64M", "count=16"])
 	return 69 
 
-#def count_and_save_words(url):
 def ping_and_save_url(url):
     errors = []
 
@@ -35,14 +38,19 @@ def ping_and_save_url(url):
             "Unable to get URL. Please make sure it's valid and try again."
         )
         return {"error": errors}
+
+    start_time = time.time()
+    processor_heavy_operation()
+    #end_time = #
+    operation_time = time.time() - start_time
     
     # save the results
     try:
     	from models import Result
         result = Result(
             url=url,
-            operation_time = "1s",
-            operation_string= "ls -la", 
+            operation_time = operation_time,
+            operation_string= "dd if=/dev/random of=bigfile bs=1024 count=102400", 
             start_date = datetime.utcnow()          
         )
         db.session.add(result)
@@ -67,8 +75,27 @@ def index():
         print(job.get_id())
         print(url)
 
-
     return render_template('index.html', results=results)
+
+@app.route('/loadtest', methods=['GET', 'POST'])
+def loadtest():
+    if request.method == "POST":
+        print "Success"
+
+    return render_template('loadtest.html')
+
+@app.route('/cool_form', methods=['GET', 'POST'])
+def cool_form():
+    if request.method == 'POST':
+        # do stuff when the form is submitted
+
+        # redirect to end the POST handling
+        # the redirect can be to the same route or somewhere else
+        print "Success"
+        return redirect(url_for('index'))
+
+    # show the form, it wasn't submitted
+    return render_template('cool_form.html')
 
 @app.route("/results/<job_key>", methods=['GET'])
 def get_results(job_key):
